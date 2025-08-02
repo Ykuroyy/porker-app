@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カワイイ♡ポーカー</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💖 カワイイ♡ポーカー 💖</h1>
+            <button id="rules-btn" class="btn-secondary">ルールを見る</button>
+        </header>
+
+        <div id="rules-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>ポーカーのルール</h2>
+                <div class="rules-content">
+                    <h3>基本ルール</h3>
+                    <p>5枚のカードで役を作るゲームです。強い役を作った人が勝ち！</p>
+                    
+                    <h3>役の強さ（弱い→強い）</h3>
+                    <ul class="hand-list">
+                        <li><strong>ハイカード</strong>: 何も揃ってない</li>
+                        <li><strong>ワンペア</strong>: 同じ数字が2枚</li>
+                        <li><strong>ツーペア</strong>: ペアが2組</li>
+                        <li><strong>スリーカード</strong>: 同じ数字が3枚</li>
+                        <li><strong>ストレート</strong>: 連続する5枚</li>
+                        <li><strong>フラッシュ</strong>: 同じマークが5枚</li>
+                        <li><strong>フルハウス</strong>: スリーカード＋ペア</li>
+                        <li><strong>フォーカード</strong>: 同じ数字が4枚</li>
+                        <li><strong>ストレートフラッシュ</strong>: 連続＋同じマーク</li>
+                        <li><strong>ロイヤルフラッシュ</strong>: 10〜Aの連続＋同じマーク</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <div class="game-area">
+                <div class="opponent-area">
+                    <h3>AIちゃん</h3>
+                    <div class="cards opponent-cards">
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                        <div class="card back"></div>
+                    </div>
+                </div>
+
+                <div class="game-info">
+                    <div id="game-message" class="message">ゲームを始めよう！</div>
+                    <div id="hand-rank" class="hand-rank"></div>
+                </div>
+
+                <div class="player-area">
+                    <h3>あなた</h3>
+                    <div class="cards player-cards">
+                        <div class="card" data-index="0"></div>
+                        <div class="card" data-index="1"></div>
+                        <div class="card" data-index="2"></div>
+                        <div class="card" data-index="3"></div>
+                        <div class="card" data-index="4"></div>
+                    </div>
+                    <div class="selected-info">交換するカードをタップしてね！</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="start-btn" class="btn-primary">ゲームスタート</button>
+                <button id="change-btn" class="btn-primary" style="display: none;">カードを交換する</button>
+                <button id="stand-btn" class="btn-secondary" style="display: none;">このままで勝負！</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
