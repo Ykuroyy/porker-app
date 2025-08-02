@@ -165,7 +165,6 @@ class PokerHand {
 
 class PokerGame {
     constructor() {
-        console.log('Creating PokerGame instance...');
         this.deck = new Deck();
         this.playerHand = [];
         this.aiHand = [];
@@ -173,11 +172,9 @@ class PokerGame {
         this.gamePhase = 'waiting';
         this.initializeElements();
         this.attachEventListeners();
-        console.log('PokerGame initialized');
     }
 
     initializeElements() {
-        console.log('Initializing elements...');
         this.startBtn = document.getElementById('start-btn');
         this.changeBtn = document.getElementById('change-btn');
         this.standBtn = document.getElementById('stand-btn');
@@ -188,19 +185,28 @@ class PokerGame {
         this.opponentCardsDiv = document.querySelector('.opponent-cards');
         this.messageDiv = document.getElementById('game-message');
         this.handRankDiv = document.getElementById('hand-rank');
-        console.log('Start button found:', !!this.startBtn);
     }
 
     attachEventListeners() {
-        console.log('Attaching event listeners...');
-        this.startBtn.addEventListener('click', () => {
-            console.log('Start button clicked');
-            this.startGame();
-        });
-        this.changeBtn.addEventListener('click', () => this.changeCards());
-        this.standBtn.addEventListener('click', () => this.stand());
-        this.rulesBtn.addEventListener('click', () => this.showRules());
-        this.closeModal.addEventListener('click', () => this.hideRules());
+        if (this.startBtn) {
+            this.startBtn.addEventListener('click', () => this.startGame());
+        }
+        
+        if (this.changeBtn) {
+            this.changeBtn.addEventListener('click', () => this.changeCards());
+        }
+        
+        if (this.standBtn) {
+            this.standBtn.addEventListener('click', () => this.stand());
+        }
+        
+        if (this.rulesBtn) {
+            this.rulesBtn.addEventListener('click', () => this.showRules());
+        }
+        
+        if (this.closeModal) {
+            this.closeModal.addEventListener('click', () => this.hideRules());
+        }
         
         window.addEventListener('click', (event) => {
             if (event.target === this.rulesModal) {
@@ -208,23 +214,28 @@ class PokerGame {
             }
         });
 
-        this.playerCardsDiv.addEventListener('click', (e) => {
-            if (e.target.classList.contains('card') && this.gamePhase === 'changing') {
-                this.toggleCardSelection(e.target);
-            }
-        });
+        if (this.playerCardsDiv) {
+            this.playerCardsDiv.addEventListener('click', (e) => {
+                if (e.target.classList.contains('card') && this.gamePhase === 'changing') {
+                    this.toggleCardSelection(e.target);
+                }
+            });
+        }
     }
 
     showRules() {
-        this.rulesModal.style.display = 'block';
+        if (this.rulesModal) {
+            this.rulesModal.style.display = 'block';
+        }
     }
 
     hideRules() {
-        this.rulesModal.style.display = 'none';
+        if (this.rulesModal) {
+            this.rulesModal.style.display = 'none';
+        }
     }
 
     startGame() {
-        console.log('Game starting...');
         this.deck.reset();
         this.playerHand = this.deck.draw(5);
         this.aiHand = this.deck.draw(5);
@@ -235,13 +246,18 @@ class PokerGame {
         this.displayAIHand(false);
         this.updateHandRank();
         
-        this.messageDiv.textContent = 'カードを交換する？';
-        this.startBtn.style.display = 'none';
-        this.changeBtn.style.display = 'inline-block';
-        this.standBtn.style.display = 'inline-block';
+        if (this.messageDiv) {
+            this.messageDiv.textContent = 'カードを交換する？';
+        }
+        
+        if (this.startBtn) this.startBtn.style.display = 'none';
+        if (this.changeBtn) this.changeBtn.style.display = 'inline-block';
+        if (this.standBtn) this.standBtn.style.display = 'inline-block';
     }
 
     displayPlayerHand() {
+        if (!this.playerCardsDiv) return;
+        
         this.playerCardsDiv.innerHTML = '';
         this.playerHand.forEach((card, index) => {
             const cardDiv = document.createElement('div');
@@ -253,6 +269,8 @@ class PokerGame {
     }
 
     displayAIHand(reveal = false) {
+        if (!this.opponentCardsDiv) return;
+        
         this.opponentCardsDiv.innerHTML = '';
         this.aiHand.forEach((card) => {
             const cardDiv = document.createElement('div');
@@ -317,6 +335,8 @@ class PokerGame {
     }
 
     updateHandRank() {
+        if (!this.handRankDiv || this.playerHand.length === 0) return;
+        
         const hand = new PokerHand([...this.playerHand]);
         const evaluation = hand.evaluate();
         this.handRankDiv.textContent = `あなたの役: ${evaluation.name}`;
@@ -340,22 +360,32 @@ class PokerGame {
             resultMessage = `引き分け！\n（どちらも: ${playerHandEval.name}）`;
         }
         
-        this.messageDiv.textContent = resultMessage;
+        if (this.messageDiv) {
+            this.messageDiv.textContent = resultMessage;
+        }
         
-        this.changeBtn.style.display = 'none';
-        this.standBtn.style.display = 'none';
-        this.startBtn.style.display = 'inline-block';
-        this.startBtn.textContent = 'もう一回！';
+        if (this.changeBtn) this.changeBtn.style.display = 'none';
+        if (this.standBtn) this.standBtn.style.display = 'none';
+        if (this.startBtn) {
+            this.startBtn.style.display = 'inline-block';
+            this.startBtn.textContent = 'もう一回！';
+        }
     }
 }
 
-console.log('Script file loaded');
+// 初期化を確実に行うため、複数の方法で試みる
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.pokerGame = new PokerGame();
+    });
+} else {
+    // すでにDOMが読み込まれている場合
+    window.pokerGame = new PokerGame();
+}
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing game...');
-    try {
-        new PokerGame();
-    } catch (error) {
-        console.error('Error initializing game:', error);
+// フォールバック: 念のため、window.onloadでも初期化
+window.addEventListener('load', () => {
+    if (!window.pokerGame) {
+        window.pokerGame = new PokerGame();
     }
 });
