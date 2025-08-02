@@ -170,6 +170,7 @@ class PokerGame {
         this.aiHand = [];
         this.selectedCards = new Set();
         this.gamePhase = 'waiting';
+        this.aiLevel = 'easy'; // デフォルトは「かんたん」
         this.initializeElements();
         this.attachEventListeners();
     }
@@ -185,6 +186,7 @@ class PokerGame {
         this.opponentCardsDiv = document.querySelector('.opponent-cards');
         this.messageDiv = document.getElementById('game-message');
         this.handRankDiv = document.getElementById('hand-rank');
+        this.levelButtons = document.querySelectorAll('.level-btn');
     }
 
     attachEventListeners() {
@@ -221,6 +223,13 @@ class PokerGame {
                 }
             });
         }
+
+        // AIレベル選択のイベントリスナー
+        this.levelButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.setAILevel(e.target.dataset.level);
+            });
+        });
     }
 
     showRules() {
@@ -235,52 +244,115 @@ class PokerGame {
         }
     }
 
+    setAILevel(level) {
+        this.aiLevel = level;
+        
+        // ボタンのアクティブ状態を更新
+        this.levelButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.level === level) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
     startGame() {
         this.deck.reset();
         this.playerHand = this.deck.draw(5);
         this.aiHand = this.deck.draw(5);
         this.selectedCards.clear();
-        this.gamePhase = 'changing';
-        
-        this.displayPlayerHand();
-        this.displayAIHand(false);
-        this.updateHandRank();
+        this.gamePhase = 'dealing';
         
         if (this.messageDiv) {
-            this.messageDiv.textContent = 'カードを交換する？';
+            this.messageDiv.textContent = 'カードを配っています...';
         }
         
         if (this.startBtn) this.startBtn.style.display = 'none';
-        if (this.changeBtn) this.changeBtn.style.display = 'inline-block';
-        if (this.standBtn) this.standBtn.style.display = 'inline-block';
+        
+        // アニメーション付きでカードを配布
+        this.displayAIHand(false, true);
+        
+        setTimeout(() => {
+            this.displayPlayerHand(true);
+        }, 500);
+        
+        // 配布完了後にゲーム開始
+        setTimeout(() => {
+            this.gamePhase = 'changing';
+            this.updateHandRank();
+            
+            if (this.messageDiv) {
+                this.messageDiv.textContent = 'カードを交換する？';
+            }
+            
+            if (this.changeBtn) this.changeBtn.style.display = 'inline-block';
+            if (this.standBtn) this.standBtn.style.display = 'inline-block';
+        }, 2500);
     }
 
-    displayPlayerHand() {
+    displayPlayerHand(animated = false) {
         if (!this.playerCardsDiv) return;
         
         this.playerCardsDiv.innerHTML = '';
-        this.playerHand.forEach((card, index) => {
-            const cardDiv = document.createElement('div');
-            cardDiv.className = `card ${card.getSuitClass()}`;
-            cardDiv.dataset.index = index;
-            cardDiv.textContent = card.getDisplayValue();
-            this.playerCardsDiv.appendChild(cardDiv);
-        });
+        
+        if (animated) {
+            this.animateCardDealing(this.playerHand, this.playerCardsDiv, false);
+        } else {
+            this.playerHand.forEach((card, index) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `card ${card.getSuitClass()}`;
+                cardDiv.dataset.index = index;
+                cardDiv.textContent = card.getDisplayValue();
+                this.playerCardsDiv.appendChild(cardDiv);
+            });
+        }
     }
 
-    displayAIHand(reveal = false) {
+    displayAIHand(reveal = false, animated = false) {
         if (!this.opponentCardsDiv) return;
         
         this.opponentCardsDiv.innerHTML = '';
-        this.aiHand.forEach((card) => {
-            const cardDiv = document.createElement('div');
-            if (reveal) {
-                cardDiv.className = `card ${card.getSuitClass()}`;
-                cardDiv.textContent = card.getDisplayValue();
-            } else {
-                cardDiv.className = 'card back';
-            }
-            this.opponentCardsDiv.appendChild(cardDiv);
+        
+        if (animated && !reveal) {
+            this.animateCardDealing(this.aiHand, this.opponentCardsDiv, true);
+        } else {
+            this.aiHand.forEach((card) => {
+                const cardDiv = document.createElement('div');
+                if (reveal) {
+                    cardDiv.className = `card ${card.getSuitClass()}`;
+                    cardDiv.textContent = card.getDisplayValue();
+                } else {
+                    cardDiv.className = 'card back';
+                }
+                this.opponentCardsDiv.appendChild(cardDiv);
+            });
+        }
+    }
+
+    animateCardDealing(cards, container, isBack = false) {
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                const cardDiv = document.createElement('div');
+                
+                if (isBack) {
+                    cardDiv.className = 'card back dealing-from-deck';
+                } else {
+                    cardDiv.className = `card ${card.getSuitClass()} dealing-from-deck`;
+                    cardDiv.dataset.index = index;
+                    cardDiv.textContent = card.getDisplayValue();
+                }
+                
+                container.appendChild(cardDiv);
+                
+                setTimeout(() => {
+                    cardDiv.classList.add('animate-in');
+                }, 50);
+                
+                setTimeout(() => {
+                    cardDiv.classList.remove('dealing-from-deck', 'animate-in');
+                }, 1000);
+                
+            }, index * 200);
         });
     }
 
@@ -309,6 +381,37 @@ class PokerGame {
     }
 
     aiChangeCards() {
+        switch (this.aiLevel) {
+            case 'easy':
+                this.aiChangeCardsEasy();
+                break;
+            case 'normal':
+                this.aiChangeCardsNormal();
+                break;
+            case 'hard':
+                this.aiChangeCardsHard();
+                break;
+        }
+    }
+
+    // かんたん：ランダムに0-4枚交換
+    aiChangeCardsEasy() {
+        const cardsToChangeCount = Math.floor(Math.random() * 5);
+        if (cardsToChangeCount === 0) return;
+        
+        const cardsToChange = [];
+        const shuffledHand = [...this.aiHand].sort(() => Math.random() - 0.5);
+        
+        for (let i = 0; i < cardsToChangeCount; i++) {
+            cardsToChange.push(shuffledHand[i]);
+        }
+        
+        this.aiHand = this.aiHand.filter(card => !cardsToChange.includes(card));
+        this.aiHand.push(...this.deck.draw(cardsToChange.length));
+    }
+
+    // ふつう：基本的な戦略
+    aiChangeCardsNormal() {
         const aiHandEval = new PokerHand([...this.aiHand]).evaluate();
         
         if (aiHandEval.rank >= 5) {
@@ -327,6 +430,85 @@ class PokerGame {
         
         this.aiHand = this.aiHand.filter(card => !cardsToChange.includes(card));
         this.aiHand.push(...this.deck.draw(cardsToChange.length));
+    }
+
+    // むずかしい：高度な戦略
+    aiChangeCardsHard() {
+        const aiHandEval = new PokerHand([...this.aiHand]).evaluate();
+        
+        // 既に強い役がある場合は交換しない
+        if (aiHandEval.rank >= 4) {
+            return;
+        }
+        
+        let cardsToChange = [];
+        
+        if (aiHandEval.rank === 3) { // ツーペア
+            // 一番弱いカードのみ交換
+            const values = this.aiHand.map(card => card.value);
+            const counts = {};
+            values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+            const singles = values.filter(v => counts[v] === 1);
+            if (singles.length > 0) {
+                const weakest = Math.min(...singles);
+                cardsToChange = this.aiHand.filter(card => card.value === weakest);
+            }
+        } else if (aiHandEval.rank === 2) { // ワンペア
+            // ペア以外を交換
+            const values = this.aiHand.map(card => card.value).sort((a, b) => b - a);
+            const pairValue = values.find(v => values.filter(val => val === v).length === 2);
+            cardsToChange = this.aiHand.filter(card => card.value !== pairValue);
+        } else {
+            // ストレートやフラッシュの可能性をチェック
+            const straightPossible = this.checkStraightPossibility();
+            const flushPossible = this.checkFlushPossibility();
+            
+            if (straightPossible.length > 0) {
+                cardsToChange = straightPossible;
+            } else if (flushPossible.length > 0) {
+                cardsToChange = flushPossible;
+            } else {
+                // 最も弱い3枚を交換
+                const sortedHand = [...this.aiHand].sort((a, b) => a.value - b.value);
+                cardsToChange = sortedHand.slice(0, 3);
+            }
+        }
+        
+        this.aiHand = this.aiHand.filter(card => !cardsToChange.includes(card));
+        this.aiHand.push(...this.deck.draw(cardsToChange.length));
+    }
+
+    checkStraightPossibility() {
+        const values = this.aiHand.map(card => card.value).sort((a, b) => a - b);
+        const uniqueValues = [...new Set(values)];
+        
+        // 4枚が連続している場合
+        for (let i = 0; i < uniqueValues.length - 3; i++) {
+            if (uniqueValues[i + 3] - uniqueValues[i] === 3) {
+                const straightCards = this.aiHand.filter(card => 
+                    card.value >= uniqueValues[i] && card.value <= uniqueValues[i + 3]
+                );
+                if (straightCards.length === 4) {
+                    return this.aiHand.filter(card => !straightCards.includes(card));
+                }
+            }
+        }
+        return [];
+    }
+
+    checkFlushPossibility() {
+        const suits = {};
+        this.aiHand.forEach(card => {
+            suits[card.suit] = (suits[card.suit] || 0) + 1;
+        });
+        
+        // 4枚が同じスートの場合
+        for (const suit in suits) {
+            if (suits[suit] === 4) {
+                return this.aiHand.filter(card => card.suit !== suit);
+            }
+        }
+        return [];
     }
 
     stand() {

@@ -10,7 +10,17 @@
     <div class="container">
         <header>
             <h1>💖 カワイイ♡ポーカー 💖</h1>
-            <button id="rules-btn" class="btn-secondary">ルールを見る</button>
+            <div class="header-controls">
+                <button id="rules-btn" class="btn-secondary">ルールを見る</button>
+                <div class="ai-level-selector">
+                    <label>AIレベル:</label>
+                    <div class="level-buttons">
+                        <button class="level-btn active" data-level="easy">かんたん</button>
+                        <button class="level-btn" data-level="normal">ふつう</button>
+                        <button class="level-btn" data-level="hard">むずかしい</button>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <div id="rules-modal" class="modal">
