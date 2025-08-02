@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>テスト</title>
+</head>
+<body>
+    <h1>JavaScriptテスト</h1>
+    <button id="test-btn">テストボタン</button>
+    <script>
+        console.log('Inline script loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded in test');
+            const btn = document.getElementById('test-btn');
+            console.log('Test button found:', !!btn);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    console.log('Test button clicked');
+                    alert('ボタンがクリックされました！');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

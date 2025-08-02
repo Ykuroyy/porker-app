@@ -165,6 +165,7 @@ class PokerHand {
 
 class PokerGame {
     constructor() {
+        console.log('Creating PokerGame instance...');
         this.deck = new Deck();
         this.playerHand = [];
         this.aiHand = [];
@@ -172,9 +173,11 @@ class PokerGame {
         this.gamePhase = 'waiting';
         this.initializeElements();
         this.attachEventListeners();
+        console.log('PokerGame initialized');
     }
 
     initializeElements() {
+        console.log('Initializing elements...');
         this.startBtn = document.getElementById('start-btn');
         this.changeBtn = document.getElementById('change-btn');
         this.standBtn = document.getElementById('stand-btn');
@@ -185,10 +188,15 @@ class PokerGame {
         this.opponentCardsDiv = document.querySelector('.opponent-cards');
         this.messageDiv = document.getElementById('game-message');
         this.handRankDiv = document.getElementById('hand-rank');
+        console.log('Start button found:', !!this.startBtn);
     }
 
     attachEventListeners() {
-        this.startBtn.addEventListener('click', () => this.startGame());
+        console.log('Attaching event listeners...');
+        this.startBtn.addEventListener('click', () => {
+            console.log('Start button clicked');
+            this.startGame();
+        });
         this.changeBtn.addEventListener('click', () => this.changeCards());
         this.standBtn.addEventListener('click', () => this.stand());
         this.rulesBtn.addEventListener('click', () => this.showRules());
@@ -216,6 +224,7 @@ class PokerGame {
     }
 
     startGame() {
+        console.log('Game starting...');
         this.deck.reset();
         this.playerHand = this.deck.draw(5);
         this.aiHand = this.deck.draw(5);
@@ -340,6 +349,13 @@ class PokerGame {
     }
 }
 
+console.log('Script file loaded');
+
 document.addEventListener('DOMContentLoaded', () => {
-    new PokerGame();
+    console.log('DOM loaded, initializing game...');
+    try {
+        new PokerGame();
+    } catch (error) {
+        console.error('Error initializing game:', error);
+    }
 });
